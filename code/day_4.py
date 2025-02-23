@@ -58,3 +58,16 @@ aggregated_metric_by_video['Average view duration'] = (
                                                       x.components.seconds
                                                       + x.components.minutes*60
                                                       + x.components.hours*3600))
+
+# Creating a new feature called engagement ratio
+# By dividing the total interactions by the number of views,
+# you get a ratio that shows the level of user engagement relative
+# to how many people have seen the content.
+# A higher ratio indicates
+# that a larger proportion of viewers are interacting with the content.
+aggregated_metric_by_video['Engagement ratio'] = (
+    aggregated_metric_by_video['Comments added']
+    + aggregated_metric_by_video['Shares']
+    + aggregated_metric_by_video['Dislikes']
+    + aggregated_metric_by_video['Likes']
+    / aggregated_metric_by_video['Views'])
