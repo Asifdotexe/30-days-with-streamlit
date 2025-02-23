@@ -85,6 +85,8 @@ aggregated_metric_by_video['Views to subscriber ratio'] = (
     / aggregated_metric_by_video['Subscribers gained'])
 
 # sorting datapoints based on Video publish time
+# this is needed
+# to ensure we have the newer videos on the top of the dataframe
 aggregated_metric_by_video = aggregated_metric_by_video.sort_values(
     'Video publish time', ascending=False
 )
