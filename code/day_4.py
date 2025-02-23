@@ -45,3 +45,11 @@ aggregated_metric_by_video.columns = ['Video','Video title',
 aggregated_metric_by_video['Video publish time'] = pd.to_datetime(
     aggregated_metric_by_video['Video published time']
 )
+
+# updating the format for average view duration
+aggregated_metric_by_video['Average view duration'] = (
+    aggregated_metric_by_video['Average view duration'].apply(lambda x:
+                                                              x.seconds
+                                                              + x.minutes*60
+                                                              + x.hours*3600))
+
