@@ -43,13 +43,18 @@ aggregated_metric_by_video.columns = ['Video','Video title',
 
 # updating the datatypes
 aggregated_metric_by_video['Video publish time'] = pd.to_datetime(
-    aggregated_metric_by_video['Video published time']
+    aggregated_metric_by_video['Video publish time'],
+    # since the dateformat is %b %m, %y using mixed format to infer it
+    format='mixed'
 )
 
 # updating the format for average view duration
+aggregated_metric_by_video['Average view duration'] = pd.to_timedelta(
+    aggregated_metric_by_video['Average view duration']
+)
+
 aggregated_metric_by_video['Average view duration'] = (
     aggregated_metric_by_video['Average view duration'].apply(lambda x:
-                                                              x.seconds
-                                                              + x.minutes*60
-                                                              + x.hours*3600))
-
+                                                      x.components.seconds
+                                                      + x.components.minutes*60
+                                                      + x.components.hours*3600))
