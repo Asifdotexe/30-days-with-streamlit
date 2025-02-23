@@ -28,3 +28,20 @@ aggregated_metric_by_subs = pd.read_csv(
 # loading the comment and time series dataset
 comment_data = pd.read_csv("data/ken-jee-yt-data/All_Comments_Final.csv")
 time_series_data = pd.read_csv("data/ken-jee-yt-data/Video_Performance_Over_Time.csv")
+
+# performing cleaning and feature engineering on aggregated metric by video dataset
+# updating the colum names
+aggregated_metric_by_video.columns = ['Video','Video title',
+                                      'Video publish time','Comments added',
+                                      'Shares','Dislikes','Likes',
+                                      'Subscribers lost','Subscribers gained',
+                                      'RPM (USD)','CPM (USD)', 'Average % viewed',
+                                      'Average view duration', 'Views',
+                                      'Watch time (hours)','Subscribers',
+                                      'Your estimated revenue (USD)',
+                                      'Impressions', 'Impressions CTR(%)']
+
+# updating the datatypes
+aggregated_metric_by_video['Video publish time'] = pd.to_datetime(
+    aggregated_metric_by_video['Video published time']
+)
