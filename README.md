@@ -11,3 +11,13 @@ This repository is for learning streamlit following the exercies given in [30 da
 ![Day 1](images/day1.png)
 
 </details>
+
+### Day 2
+<details>
+    <summary>
+        Building your first Streamlit app  
+    </summary>
+
+![Day 2](images/day2.png)
+
+</details>
