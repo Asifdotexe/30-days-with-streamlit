@@ -31,6 +31,7 @@ time_series_data = pd.read_csv("data/ken-jee-yt-data/Video_Performance_Over_Time
 
 # performing cleaning and feature engineering on aggregated metric by video dataset
 # updating the colum names
+# ensuring that the datatypes are readable and understable on the dashboard
 aggregated_metric_by_video.columns = ['Video','Video title',
                                       'Video publish time','Comments added',
                                       'Shares','Dislikes','Likes',
@@ -42,6 +43,7 @@ aggregated_metric_by_video.columns = ['Video','Video title',
                                       'Impressions', 'Impressions CTR(%)']
 
 # updating the datatypes
+# ensuring that the data is in a format suitable for time series analysis
 aggregated_metric_by_video['Video publish time'] = pd.to_datetime(
     aggregated_metric_by_video['Video publish time'],
     # since the dateformat is %b %m, %y using mixed format to infer it
@@ -49,10 +51,14 @@ aggregated_metric_by_video['Video publish time'] = pd.to_datetime(
 )
 
 # updating the format for average view duration
+# in the code below, we are converting the average view duration column
+# into a timedelta object as currently it was just str object
 aggregated_metric_by_video['Average view duration'] = pd.to_timedelta(
     aggregated_metric_by_video['Average view duration']
 )
 
+# here, we convert every component into seconds unit and aggregate them
+# as we want to show the average view duration in units of seconds.
 aggregated_metric_by_video['Average view duration'] = (
     aggregated_metric_by_video['Average view duration'].apply(lambda x:
                                                       x.components.seconds
