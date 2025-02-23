@@ -109,5 +109,7 @@ def load_data() -> tuple[pd.DataFrame, pd.DataFrame,
         'Video publish time', ascending=False
     )
 
+    time_series_data['Date'] = pd.to_datetime(time_series_data['Date'])
+
     return (aggregated_metric_by_video, aggregated_metric_by_subs,
             comment_data, time_series_data)
