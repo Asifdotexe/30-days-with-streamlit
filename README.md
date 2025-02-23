@@ -12,10 +12,10 @@ This repository is for learning streamlit following the exercies given in [30 da
 
 </details>
 
-### Day 2
+### [Day 2](https://github.com/Asifdotexe/30-days-with-streamlit/blob/main/code/day_2.py)
 <details>
     <summary>
-        Building your first Streamlit app  
+        Building your first Streamlit app
     </summary>
 
 ![Day 2](images/day2.png)
