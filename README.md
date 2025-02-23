@@ -21,3 +21,13 @@ This repository is for learning streamlit following the exercies given in [30 da
 ![Day 2](images/day2.png)
 
 </details>
+
+### [Day 3](https://github.com/Asifdotexe/30-days-with-streamlit/blob/main/code/day_3.py)
+<details>
+    <summary>
+        Implementing st.button
+    </summary>
+
+![Day 3](images/day3.png)
+
+</details>
