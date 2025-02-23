@@ -77,3 +77,11 @@ aggregated_metric_by_video['Engagement ratio'] = (
     + aggregated_metric_by_video['Dislikes']
     + aggregated_metric_by_video['Likes']
     / aggregated_metric_by_video['Views'])
+
+# creating a new metric to determine
+# how many views it takes on average to add one subscriber.
+aggregated_metric_by_video['Views to subscriber ratio'] = (
+    aggregated_metric_by_video['Views']
+    / aggregated_metric_by_video['Subscribers gained'])
+
+print(aggregated_metric_by_video['Views to subscriber ratio'])
