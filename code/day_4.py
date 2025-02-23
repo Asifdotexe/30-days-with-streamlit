@@ -46,7 +46,7 @@ def load_data() -> tuple[pd.DataFrame, pd.DataFrame,
 
     # performing cleaning and feature engineering on aggregated metric by video dataset
     # updating the colum names
-    # ensuring that the datatypes are readable and understable on the dashboard
+    # ensuring that the datatypes are readable and understandable on the dashboard
     aggregated_metric_by_video.columns = ['Video', 'Video title',
                                           'Video publish time',
                                           'Comments added',
@@ -113,3 +113,15 @@ def load_data() -> tuple[pd.DataFrame, pd.DataFrame,
 
     return (aggregated_metric_by_video, aggregated_metric_by_subs,
             comment_data, time_series_data)
+
+# running the function to load the datasets
+(df_aggregated_metric_by_video, df_aggregated_metric_by_subs,
+ df_comment_data, df_time_series_data) = load_data()
+
+#TODO: start by additional feature engineering and then build the app
+
+# additional feature engineering before building the app
+
+# Starting the code for streamlit application from here
+
+# creating a sidebar
