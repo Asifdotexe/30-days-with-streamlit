@@ -84,4 +84,7 @@ aggregated_metric_by_video['Views to subscriber ratio'] = (
     aggregated_metric_by_video['Views']
     / aggregated_metric_by_video['Subscribers gained'])
 
-print(aggregated_metric_by_video['Views to subscriber ratio'])
+# sorting datapoints based on Video publish time
+aggregated_metric_by_video = aggregated_metric_by_video.sort_values(
+    'Video publish time', ascending=False
+)
