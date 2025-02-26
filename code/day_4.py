@@ -241,6 +241,8 @@ app_sidebar = st.sidebar.selectbox("Aggregate or Individual Video",
                                    ('Aggregate Metrics',
                                     'Individual Video Analysis'))
 
+st.title("Youtube Analytical Dashboard by Asif Sayyed")
+
 # show individual metrics
 if app_sidebar == 'Aggregate Metrics':
     st.write("YouTube Aggregation Data")
