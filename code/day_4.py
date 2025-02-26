@@ -138,6 +138,19 @@ median_aggregation = df_aggregated_metric_by_video[
     df_aggregated_metric_by_video['Video publish time']
     >= metric_date_12_month].median()
 
+# Create differences from the median for numeric values only.
+# This normalizes data by measuring the percentage difference from the median.
+# Useful for understanding how much each value deviates from the typical value.
+
+# Identify numeric columns (float64 or int64).
+numeric_cols = np.array((df_aggregated_metric_by_video.dtypes == 'float64')
+                        | (df_aggregated_metric_by_video.dtypes == 'int64'))
+
+# Subtract the median and divide by the median to get relative differences.
+df_aggregated_metric_by_video.iloc[:, numeric_cols] = (
+        df_aggregated_metric_by_video.iloc[:, numeric_cols]
+        - median_aggregation).div(median_aggregation)
+
 # Starting the code for streamlit application from here
 
 # creating a sidebar
