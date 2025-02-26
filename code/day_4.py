@@ -162,12 +162,46 @@ df_time_series_data = pd.merge(df_time_series_data,
                         ['Video', 'Video publish time']],
                         left_on='External Video ID', right_on='Video')
 
-# Calculate the difference in days between each date and the video's publish date.
+# Compute days since publication.
 df_time_series_data['days_published'] = (
         df_time_series_data['Date']
         - df_time_series_data['Video publish time']
 ).dt.days
 
+# Filter data to include only videos published in the last 12 months.
+
+# Calculate the cutoff date,
+# which is 12 months before the most recent video publish date.
+date_12_months = (df_aggregated_metric_by_video['Video publish time'].max()
+             - pd.DateOffset(months=12))
+
+# Keep only rows where the video was published within the last 12 months.
+df_time_diff_yr = df_time_series_data[df_time_series_data['Video publish time']
+                                      >= date_12_months]
+
+# Aggregate daily view data for the first 30 days:
+# - Compute mean, median, 80th percentile, and 20th percentile of views per day.
+
+views_days = pd.pivot_table(df_time_diff_yr, index='days_published', values='Views',
+                            aggfunc=[np.mean, np.median,
+                                     lambda x: np.percentile(x, 80),
+                                     lambda x: np.percentile(x, 20)]
+                            ).reset_index()
+
+# Rename columns for clarity
+views_days.columns = ['days_published', 'mean_views', 'median_views',
+                      '80pct_views', '20pct_views']
+
+# Keep only the first 30 days after publication
+views_days = views_days[views_days['days_published'].between(0, 30)]
+
+# Prepare cumulative view data for visualization
+views_cumulative = views_days.loc[:, ['days_published', 'median_views',
+                                      '80pct_views', '20pct_views']]
+
+# Compute cumulative sum of median, 80th percentile, and 20th percentile views over time
+views_cumulative.loc[:, ['median_views', '80pct_views', '20pct_views']] = \
+    views_cumulative.loc[:, ['median_views', '80pct_views', '20pct_views']].cumsum()
 
 # Starting the code for streamlit application from here
 
