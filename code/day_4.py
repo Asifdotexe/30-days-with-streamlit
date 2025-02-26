@@ -151,6 +151,24 @@ df_aggregated_metric_by_video.iloc[:, numeric_cols] = (
         df_aggregated_metric_by_video.iloc[:, numeric_cols]
         - median_aggregation).div(median_aggregation)
 
+# Merge daily performance data with video publish dates
+# to calculate the number of days since publication.
+
+# Merge `df_time_series_data`
+# (daily data) with `df_aggregated_metric_by_video`,
+# keeping only the 'Video' and 'Video publish time' columns.
+df_time_series_data = pd.merge(df_time_series_data,
+                        df_aggregated_metric_by_video.loc[:,
+                        ['Video', 'Video publish time']],
+                        left_on='External Video ID', right_on='Video')
+
+# Calculate the difference in days between each date and the video's publish date.
+df_time_series_data['days_published'] = (
+        df_time_series_data['Date']
+        - df_time_series_data['Video publish time']
+).dt.days
+
+
 # Starting the code for streamlit application from here
 
 # creating a sidebar
