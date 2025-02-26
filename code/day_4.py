@@ -4,6 +4,8 @@ Building a YouTube dashboard using the following data
 link: https://www.kaggle.com/datasets/kenjee/ken-jee-youtube-data
 
 @author: Asif Sayyed
+Module initiated: 23-02-2025
+Last Modified: 26-02-2025
 """
 
 import numpy as np
@@ -78,10 +80,11 @@ def load_data() -> tuple[pd.DataFrame, pd.DataFrame,
     # here, we convert every component into seconds unit and aggregate them
     # as we want to show the average view duration in units of seconds.
     aggregated_metric_by_video['Average view duration'] = (
-        aggregated_metric_by_video['Average view duration'].apply(lambda x:
-                                                                  x.components.seconds
-                                                                  + x.components.minutes * 60
-                                                                  + x.components.hours * 3600))
+        aggregated_metric_by_video['Average view duration'].apply(
+            lambda x:
+              x.components.seconds
+              + x.components.minutes * 60
+              + x.components.hours * 3600))
 
     # Creating a new feature called engagement ratio
     # By dividing the total interactions by the number of views,
@@ -118,9 +121,22 @@ def load_data() -> tuple[pd.DataFrame, pd.DataFrame,
 (df_aggregated_metric_by_video, df_aggregated_metric_by_subs,
  df_comment_data, df_time_series_data) = load_data()
 
-#TODO: start by additional feature engineering and then build the app
-
 # additional feature engineering before building the app
+
+# Determine the median metrics of videos published in the last 12 months.
+# This helps analyze recent performance trends while excluding older videos
+# that might have accumulated more views over time,
+# leading to skewed statistics.
+# Get the latest video publish time
+# and subtract 12 months to define the cutoff date.
+metric_date_12_month = (df_aggregated_metric_by_video['Video publish time'].max()
+                        - pd.DateOffset(months=12))
+
+# Filter videos published within the last 12 months and calculate their median metrics.
+# This ensures a fair comparison by focusing on recent content.
+median_aggregation = df_aggregated_metric_by_video[
+    df_aggregated_metric_by_video['Video publish time']
+    >= metric_date_12_month].median()
 
 # Starting the code for streamlit application from here
 
