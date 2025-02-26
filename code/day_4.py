@@ -16,6 +16,30 @@ import streamlit as st
 from datetime import datetime
 
 
+def style_negative(v, props=''):
+    """ Style negative values in dataframe"""
+    try:
+        return props if v < 0 else None
+    except:
+        pass
+
+
+def style_positive(v, props=''):
+    """Style positive values in dataframe"""
+    try:
+        return props if v > 0 else None
+    except:
+        pass
+
+def audience_simple(country):
+    """Show top represented countries"""
+    if country == 'US':
+        return 'USA'
+    elif country == 'IN':
+        return 'India'
+    else:
+        return 'Other'
+
 @st.cache_data
 def load_data() -> tuple[pd.DataFrame, pd.DataFrame,
                         pd.DataFrame, pd.DataFrame]:
@@ -67,7 +91,7 @@ def load_data() -> tuple[pd.DataFrame, pd.DataFrame,
     aggregated_metric_by_video['Video publish time'] = pd.to_datetime(
         aggregated_metric_by_video['Video publish time'],
         # since the dateformat is %b %m, %y using mixed format to infer it
-        format='mixed'
+        format="%d-%m-%Y",
     )
 
     # updating the format for average view duration
@@ -112,7 +136,8 @@ def load_data() -> tuple[pd.DataFrame, pd.DataFrame,
         'Video publish time', ascending=False
     )
 
-    time_series_data['Date'] = pd.to_datetime(time_series_data['Date'])
+    time_series_data['Date'] = pd.to_datetime(time_series_data['Date'],
+                                              format='%d-%b-%y')
 
     return (aggregated_metric_by_video, aggregated_metric_by_subs,
             comment_data, time_series_data)
@@ -134,9 +159,11 @@ metric_date_12_month = (df_aggregated_metric_by_video['Video publish time'].max(
 
 # Filter videos published within the last 12 months and calculate their median metrics.
 # This ensures a fair comparison by focusing on recent content.
-median_aggregation = df_aggregated_metric_by_video[
-    df_aggregated_metric_by_video['Video publish time']
-    >= metric_date_12_month].median()
+filtered_videos = df_aggregated_metric_by_video[
+    df_aggregated_metric_by_video['Video publish time'] >= metric_date_12_month
+]
+
+median_aggregation = filtered_videos.select_dtypes(include=['number']).median()
 
 # Create differences from the median for numeric values only.
 # This normalizes data by measuring the percentage difference from the median.
@@ -180,7 +207,8 @@ df_time_diff_yr = df_time_series_data[df_time_series_data['Video publish time']
                                       >= date_12_months]
 
 # Aggregate daily view data for the first 30 days:
-# - Compute mean, median, 80th percentile, and 20th percentile of views per day.
+# - Compute mean, median, 80th percentile,
+# and 20th percentile of views per day.
 
 views_days = pd.pivot_table(df_time_diff_yr, index='days_published', values='Views',
                             aggfunc=[np.mean, np.median,
@@ -199,10 +227,167 @@ views_days = views_days[views_days['days_published'].between(0, 30)]
 views_cumulative = views_days.loc[:, ['days_published', 'median_views',
                                       '80pct_views', '20pct_views']]
 
-# Compute cumulative sum of median, 80th percentile, and 20th percentile views over time
+# Compute cumulative sum of median, 80th percentile,
+# and 20th percentile views over time
 views_cumulative.loc[:, ['median_views', '80pct_views', '20pct_views']] = \
     views_cumulative.loc[:, ['median_views', '80pct_views', '20pct_views']].cumsum()
 
+########################################################
 # Starting the code for streamlit application from here
+########################################################
 
 # creating a sidebar
+app_sidebar = st.sidebar.selectbox("Aggregate or Individual Video",
+                                   ('Aggregate Metrics',
+                                    'Individual Video Analysis'))
+
+# show individual metrics
+if app_sidebar == 'Aggregate Metrics':
+    st.write("YouTube Aggregation Data")
+
+    # Select relevant metrics from the aggregated video data
+    df_selected_metrics = df_aggregated_metric_by_video[
+        ['Video publish time', 'Views', 'Likes', 'Subscribers', 'Shares',
+         'Comments added', 'RPM (USD)', 'Average % viewed',
+         'Average view duration', 'Engagement ratio',
+         'Views to subscriber ratio']
+    ]
+
+    # Define date thresholds for the last 6 months and last 12 months
+    six_months_ago = (df_selected_metrics['Video publish time'].max()
+                      - pd.DateOffset(months=6))
+    twelve_months_ago = (df_selected_metrics['Video publish time'].max()
+                         - pd.DateOffset(months=12))
+
+    # Compute median values of the selected metrics for the last 6 and 12 months
+    median_metrics_6mo = df_selected_metrics[
+        df_selected_metrics['Video publish time'] >= six_months_ago].median()
+    median_metrics_12mo = df_selected_metrics[
+        df_selected_metrics['Video publish time'] >= twelve_months_ago].median()
+
+    # Create five Streamlit columns to display the selected metrics
+    col_views, col_likes, col_subs, col_shares, col_comments = st.columns(5)
+    columns = [col_views, col_likes, col_subs, col_shares, col_comments]
+
+    # Initialize an index to track which column to place each metric in
+    metric_index = 0
+
+    # Loop through each metric in the 6-month median data
+    for metric in median_metrics_6mo.index:
+        if metric != 'Video publish time':
+            # Place the metric in the corresponding Streamlit column
+            with columns[metric_index]:
+                # Calculate the percentage change from the
+                # 12-month median to the 6-month median
+                # and normalize the change as a ratio
+                percentage_change = ((median_metrics_6mo[metric] -
+                                      median_metrics_12mo[metric])
+                                     / median_metrics_12mo[
+                                         metric])
+
+                # Display the metric in Streamlit with its current median value and percentage change
+                st.metric(label=metric, value=round(median_metrics_6mo[metric], 1),
+                          # Format percentage change as a percentage string
+                          delta="{:.2%}".format(percentage_change))
+
+            # Move to the next column for the next metric
+            metric_index += 1
+
+            # Reset column index after every 5 metrics
+            # to cycle back to the first column
+            if metric_index >= 5:
+                metric_index = 0
+
+    # Convert 'Video publish time' to datetime format
+    df_aggregated_metric_by_video['Video publish time'] = pd.to_datetime(
+        df_aggregated_metric_by_video['Video publish time'])
+
+    # Extract only the date part for better readability
+    df_aggregated_metric_by_video['Publish Date'] = (
+        df_aggregated_metric_by_video['Video publish time'].dt.date)
+
+    # Select relevant columns for analysis and display
+    df_selected_metrics = df_aggregated_metric_by_video.loc[:,
+                          [
+                              'Video title',
+                              'Publish Date',
+                              'Views', 'Likes',
+                              'Subscribers',
+                              'Shares',
+                              'Comments added',
+                              'RPM (USD)',
+                              'Average % viewed',
+                              'Average view duration',
+                              'Engagement ratio',
+                              'Views to subscriber ratio'
+                                                    ]]
+
+    # Identify numerical columns for further processing
+    numeric_metric_columns = df_selected_metrics.select_dtypes(
+        include=['number']).columns.tolist()
+
+    # Create a dictionary
+    # to format numerical values as percentages where applicable
+    percentage_format_mapping = {col: '{:.1%}'.format for col in
+                                 numeric_metric_columns}
+
+    # Display DataFrame with formatting and styling
+    st.dataframe(
+        df_selected_metrics.style
+        .hide()
+        .applymap(style_negative, props='color:red;')
+        .applymap(style_positive, props='color:green;')
+        .format(percentage_format_mapping)
+    )
+
+if app_sidebar == 'Individual Video Analysis':
+    videos = tuple(df_aggregated_metric_by_video['Video title'])
+    st.write("Individual Video Performance")
+    video_select = st.selectbox('Pick a Video:', videos)
+
+    agg_filtered = df_aggregated_metric_by_video[df_aggregated_metric_by_video['Video title'] == video_select]
+    agg_sub_filtered = df_aggregated_metric_by_subs[
+        df_aggregated_metric_by_subs['Video Title'] == video_select]
+    agg_sub_filtered['Country'] = agg_sub_filtered[
+        'Country Code'].apply(audience_simple)
+    agg_sub_filtered.sort_values('Is Subscribed', inplace=True)
+
+    fig = px.bar(agg_sub_filtered, x='Views', y='Is Subscribed',
+                 color='Country', orientation='h')
+    # order axis
+    st.plotly_chart(fig)
+
+    agg_time_filtered = df_time_series_data[
+        df_time_series_data['Video Title'] == video_select]
+    first_30 = agg_time_filtered[
+        agg_time_filtered['days_published'].between(0, 30)]
+    first_30 = first_30.sort_values('days_published')
+
+    fig2 = go.Figure()
+    fig2.add_trace(go.Scatter(x=views_cumulative['days_published'],
+                              y=views_cumulative['20pct_views'],
+                              mode='lines',
+                              name='20th percentile',
+                              line=dict(color='purple', dash='dash')))
+    fig2.add_trace(go.Scatter(x=views_cumulative['days_published'],
+                              y=views_cumulative['median_views'],
+                              mode='lines',
+                              name='50th percentile',
+                              line=dict(color='blue', dash='dash')))
+    fig2.add_trace(go.Scatter(x=views_cumulative['days_published'],
+                              y=views_cumulative['80pct_views'],
+                              mode='lines',
+                              name='80th percentile',
+                              line=dict(color='green',
+                                        dash='dash')))
+    fig2.add_trace(go.Scatter(x=first_30['days_published'],
+                              y=first_30['Views'].cumsum(),
+                              mode='lines',
+                              name='Current Video',
+                              line=dict(color='firebrick', width=8)))
+
+    fig2.update_layout(title='View comparison first 30 days',
+                       xaxis_title='Days Since Published',
+                       yaxis_title='Cumulative views')
+
+    st.plotly_chart(fig2)
